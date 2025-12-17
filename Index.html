@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Daily Tracker</title>
+
+<style>
+:root {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --text: #e5e7eb;
+  --accent: #22c55e;
+  --danger: #ef4444;
+}
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont;
+  background: var(--bg);
+  color: var(--text);
+}
+header {
+  padding: 16px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+}
+section {
+  padding: 16px;
+}
+.card {
+  background: var(--card);
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+button {
+  background: var(--accent);
+  color: black;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+input, select {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  margin-top: 6px;
+}
+.habit {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+.stats {
+  display: flex;
+  justify-content: space-around;
+}
+</style>
+</head>
+
+<body>
+
+<header>📅 Daily Tracker</header>
+
+<section class="card">
+  <label>⏰ Godzina wstania</label>
+  <input type="time" id="wakeTime"/>
+</section>
+
+<section class="card">
+  <h3>📋 Nawyki</h3>
+  <div id="habits"></div>
+  <input id="newHabit" placeholder="Dodaj nowy nawyk"/>
+  <button onclick="addHabit()">Dodaj</button>
+</section>
+
+<section class="card stats">
+  <div>✅ <span id="done">0</span></div>
+  <div>❌ <span id="notDone">0</span></div>
+</section>
+
+<section class="card">
+  <h3>📊 Statystyki</h3>
+  <div id="stats"></div>
+</section>
+
+<script>
+const today = new Date().toDateString();
+let data = JSON.parse(localStorage.getItem("tracker") || "{}");
+
+if (!data[today]) {
+  data[today] = { wake: "", habits: [] };
+}
+
+function save() {
+  localStorage.setItem("tracker", JSON.stringify(data));
+  render();
+}
+
+function addHabit() {
+  const name = document.getElementById("newHabit").value;
+  if (!name) return;
+  data[today].habits.push({ name, done: false });
+  document.getElementById("newHabit").value = "";
+  save();
+}
+
+function toggleHabit(i) {
+  data[today].habits[i].done = !data[today].habits[i].done;
+  save();
+}
+
+function render() {
+  const h = document.getElementById("habits");
+  h.innerHTML = "";
+  let done = 0;
+
+  data[today].habits.forEach((habit, i) => {
+    if (habit.done) done++;
+    h.innerHTML += `
+      <div class="habit">
+        ${habit.name}
+        <input type="checkbox" ${habit.done?"checked":""}
+          onclick="toggleHabit(${i})"/>
+      </div>`;
+  });
+
+  document.getElementById("done").textContent = done;
+  document.getElementById("notDone").textContent =
+    data[today].habits.length - done;
+
+  document.getElementById("stats").textContent =
+    "Dni zapisane: " + Object.keys(data).length;
+}
+
+document.getElementById("wakeTime").onchange = e => {
+  data[today].wake = e.target.value;
+  save();
+};
+
+render();
+</script>
+
+</body>
+</html>
